@@ -18,8 +18,8 @@ import { wrapWindowsDirectCmdHookCommand } from '../agent-hooks/windows-direct-c
 import { isGitBashAvailable } from '../git-bash'
 
 export type ClaudeCompatibleHookSettings = {
-  configDirName: '.claude' | '.openclaude'
-  scriptBaseName: 'claude-hook' | 'openclaude-hook'
+  configDirName: '.claude' | '.openclaude' | '.verboo'
+  scriptBaseName: 'claude-hook' | 'openclaude-hook' | 'verboo-hook'
   usesWindowsCompatLauncher: boolean
 }
 
@@ -32,6 +32,14 @@ export const CLAUDE_HOOK_SETTINGS: ClaudeCompatibleHookSettings = {
 export const OPENCLAUDE_HOOK_SETTINGS: ClaudeCompatibleHookSettings = {
   configDirName: '.openclaude',
   scriptBaseName: 'openclaude-hook',
+  usesWindowsCompatLauncher: false
+}
+
+// Why: Verboo is Claude-family and stores managed hooks in ~/.verboo/settings.json
+// using the Claude settings shape, so it reuses ClaudeHookService verbatim.
+export const VERBOO_HOOK_SETTINGS: ClaudeCompatibleHookSettings = {
+  configDirName: '.verboo',
+  scriptBaseName: 'verboo-hook',
   usesWindowsCompatLauncher: false
 }
 

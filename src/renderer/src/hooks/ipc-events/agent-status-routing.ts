@@ -220,13 +220,16 @@ export function resolveHookPayloadAgentType(
   payload: ParsedAgentStatusPayload,
   terminalTitle: string | undefined
 ): ParsedAgentStatusPayload {
-  if (
-    payload.agentType !== 'claude' ||
-    !terminalTitle ||
-    !titleHasAgentName(terminalTitle, 'openclaude')
-  ) {
+  if (payload.agentType !== 'claude' || !terminalTitle) {
     return payload
   }
-  // Why: OpenClaude emits Claude-compatible hooks; the title is the last renderer signal to keep it out of Claude-only status paths.
-  return { ...payload, agentType: 'openclaude' }
+  // Why: OpenClaude and Verboo emit Claude-compatible hooks on the shared /hook/claude route; the
+  // title is the last renderer signal to keep them out of Claude-only status paths.
+  if (titleHasAgentName(terminalTitle, 'openclaude')) {
+    return { ...payload, agentType: 'openclaude' }
+  }
+  if (titleHasAgentName(terminalTitle, 'verboo')) {
+    return { ...payload, agentType: 'verboo' }
+  }
+  return payload
 }

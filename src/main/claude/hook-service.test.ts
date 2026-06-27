@@ -30,7 +30,8 @@ import { ClaudeHookService } from './hook-service'
 import {
   CLAUDE_EVENTS,
   getWindowsManagedLifecycleHook,
-  OPENCLAUDE_HOOK_SETTINGS
+  OPENCLAUDE_HOOK_SETTINGS,
+  VERBOO_HOOK_SETTINGS
 } from './hook-settings'
 
 const CLAUDE_SCRIPT_FILE_NAME = process.platform === 'win32' ? 'claude-hook.cmd' : 'claude-hook.sh'
@@ -38,8 +39,10 @@ const STATUSLINE_SCRIPT_FILE_NAME =
   process.platform === 'win32' ? 'claude-statusline.cmd' : 'claude-statusline.sh'
 const OPENCLAUDE_SCRIPT_FILE_NAME =
   process.platform === 'win32' ? 'openclaude-hook.cmd' : 'openclaude-hook.sh'
+const VERBOO_SCRIPT_FILE_NAME = process.platform === 'win32' ? 'verboo-hook.cmd' : 'verboo-hook.sh'
 const isClaudeManagedCommand = createManagedCommandMatcher(CLAUDE_SCRIPT_FILE_NAME)
 const isOpenClaudeManagedCommand = createManagedCommandMatcher(OPENCLAUDE_SCRIPT_FILE_NAME)
+const isVerbooManagedCommand = createManagedCommandMatcher(VERBOO_SCRIPT_FILE_NAME)
 
 type TestHook = { command: string; args?: string[] }
 
@@ -837,5 +840,55 @@ describe('OpenClaudeHookService-compatible install', () => {
     expect(command).toContain('"${HOME-}/.orca/agent-hooks/openclaude-hook.sh"')
     expect(command).not.toContain('/home/dev/.orca/agent-hooks/openclaude-hook.sh')
     expect(fs.files.get('/home/dev/.orca/agent-hooks/openclaude-hook.sh')).toContain('/hook/claude')
+  })
+})
+
+describe('VerbooHookService-compatible install', () => {
+  const makeVerbooService = (): ClaudeHookService =>
+    new ClaudeHookService({
+      agent: 'verboo',
+      displayName: 'Verboo',
+      settings: VERBOO_HOOK_SETTINGS
+    })
+
+  it('installs managed hooks into Verboo settings without touching Claude settings', () => {
+    const tmpHome = mkdtempSync(join(tmpdir(), 'orca-verboo-hooks-'))
+    vi.stubEnv('HOME', tmpHome)
+    vi.stubEnv('USERPROFILE', tmpHome)
+    try {
+      const verbooSettings = join(tmpHome, '.verboo', 'settings.json')
+      mkdirSync(join(tmpHome, '.verboo'), { recursive: true })
+      writeFileSync(verbooSettings, JSON.stringify({ hooks: {} }))
+
+      const status = makeVerbooService().install()
+
+      expect(status).toMatchObject({
+        agent: 'verboo',
+        state: 'installed',
+        configPath: verbooSettings
+      })
+      const parsed = JSON.parse(readFileSync(verbooSettings, 'utf-8'))
+      for (const event of ['UserPromptSubmit', 'Stop', 'StopFailure']) {
+        const command = parsed.hooks[event][0].hooks[0].command as string
+        expect(isVerbooManagedCommand(command)).toBe(true)
+        expect(command).toContain('"${HOME-}/.orca/agent-hooks/verboo-hook.cmd"')
+        expect(command).toContain('"${HOME-}/.orca/agent-hooks/verboo-hook.sh"')
+        expect(command).not.toContain(tmpHome.replaceAll('\\', '/'))
+      }
+      // Why: Verboo is Claude-family, so its managed script posts on the shared
+      // /hook/claude route — the renderer reclassifies by title.
+      expect(
+        readFileSync(join(tmpHome, '.orca', 'agent-hooks', VERBOO_SCRIPT_FILE_NAME), 'utf-8')
+      ).toContain('/hook/claude')
+      expect(
+        readFileSync(join(tmpHome, '.orca', 'agent-hooks', VERBOO_SCRIPT_FILE_NAME), 'utf-8')
+      ).not.toContain('DEVIN_PROJECT_DIR')
+      // Why: the statusline usage feed is Claude-only; Verboo installs must not set statusLine.
+      expect(parsed.statusLine).toBeUndefined()
+      expect(existsSync(join(tmpHome, '.claude', 'settings.json'))).toBe(false)
+    } finally {
+      vi.unstubAllEnvs()
+      rmSync(tmpHome, { recursive: true, force: true })
+    }
   })
 })
