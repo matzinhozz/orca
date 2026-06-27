@@ -68,6 +68,7 @@ export const NEVER_TRANSLATE_VALUES = new Set([
   'Qwen Code',
   'Rovo Dev',
   'Markdown',
+  'Verboo',
   'VS Code',
   'Warp',
   'Zed',
