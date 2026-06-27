@@ -107,7 +107,7 @@ function computeIsClaudeAgent(title: string): boolean {
   if (containsAgentSpinnerGlyph(title)) {
     // Why: named non-Claude agents carry braille spinners too. Gate Cursor by its
     // identity title, not the token, so a Claude title mentioning a cursor stays Claude.
-    return !isCursorAgentTitle(title) && !lower.includes('openclaude')
+    return !isCursorAgentTitle(title) && !lower.includes('openclaude') && !lower.includes('verboo')
   }
   // Why: permission/action-required Claude titles can omit the usual prefixes.
   // Token-match so cwd/worktree titles like "claude-scratch" do not become
@@ -175,6 +175,9 @@ function computeAgentLabel(title: string): string | null {
   if (titleHasAgentName(title, 'openclaude')) {
     return 'OpenClaude'
   }
+  if (titleHasAgentName(title, 'verboo')) {
+    return 'Verboo'
+  }
   if (titleHasAgentName(title, 'copilot')) {
     return 'GitHub Copilot'
   }
@@ -225,6 +228,7 @@ export const getAgentLabel: (title: string) => string | null =
 const TITLE_LABEL_TO_AGENT: Partial<Record<string, TuiAgent>> = {
   'Claude Code': 'claude',
   OpenClaude: 'openclaude',
+  Verboo: 'verboo',
   Codex: 'codex',
   'Gemini CLI': 'gemini',
   'GitHub Copilot': 'copilot',

@@ -35,7 +35,7 @@ function computeIsClaudeAgent(title: string): boolean {
   if (containsAgentSpinnerGlyph(title)) {
     // Why: named non-Claude agents carry braille spinners too. Gate Cursor by its
     // identity title, not the token, so a Claude title mentioning a cursor stays Claude.
-    return !isCursorAgentTitle(title) && !lower.includes('openclaude')
+    return !isCursorAgentTitle(title) && !lower.includes('openclaude') && !lower.includes('verboo')
   }
 
   const trimmedTitle = title.trimStart()
@@ -85,6 +85,9 @@ function computeAgentLabel(title: string): string | null {
   }
   if (titleHasAgentName(title, 'openclaude')) {
     return 'OpenClaude'
+  }
+  if (titleHasAgentName(title, 'verboo')) {
+    return 'Verboo'
   }
   if (titleHasAgentName(title, 'copilot')) {
     return 'GitHub Copilot'
