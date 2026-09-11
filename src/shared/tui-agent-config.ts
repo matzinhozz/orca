@@ -97,8 +97,6 @@ const TUI_AGENT_CONFIG_SOURCE: Record<TuiAgent, TuiAgentConfigSource> = {
   // Verboo: fork of Claude Code; positional prompt, OAuth login (no trust preflight).
   verboo: {
     detectCmd: 'verboo',
-    launchCmd: 'verboo',
-    expectedProcess: 'verboo',
     promptInjectionMode: 'argv'
   },
   codex: {

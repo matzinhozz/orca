@@ -16,6 +16,8 @@ export const SKILLS_CLI_AGENT_KEY_BY_TUI_AGENT = {
   'claude-agent-teams': 'claude-code',
   // Why: Orca states OpenClaude reads Claude-owned roots (native-chat-agent-profiles).
   openclaude: 'claude-code',
+  // Why: Verboo is a Claude Code fork and reads Claude-owned roots too (orchestration-skill-coverage).
+  verboo: 'claude-code',
   codex: 'codex',
   autohand: 'autohand-code',
   opencode: 'opencode',
